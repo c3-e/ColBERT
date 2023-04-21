@@ -31,4 +31,5 @@ setuptools.setup(
         'faiss-gpu': ['faiss-gpu>=1.7.0'],
         'torch': ['torch==1.13.1']
     }
+    include_package_data=True
 )
