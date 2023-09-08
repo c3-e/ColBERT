@@ -187,9 +187,9 @@ class IndexUpdater:
         print_message(f"#> Current average chunksize is: {avg_chunksize}.")
 
         # Calculate number of additional passages we can write to the last chunk
-        last_chunk_capacity = max(
+        last_chunk_capacity = int(max(
             0, avg_chunksize - last_chunk_metadata["num_passages"]
-        )
+        ))
         print_message(
             f"#> The last chunk can hold {last_chunk_capacity} additional passages."
         )
@@ -204,7 +204,11 @@ class IndexUpdater:
 
         # First populate the last chunk
         if last_chunk_capacity > 0:
-            pid_end = min(pid_last, pid_start + last_chunk_capacity)
+            pid_end = int(min(pid_last, pid_start + last_chunk_capacity))
+            
+            print_message(
+                f"#> pid_start: {pid_start} pid_end: {pid_end} last_chunk_capacity: {last_chunk_capacity}"
+            )
             emb_end = (
                 emb_start
                 + torch.sum(self.searcher.ranker.doclens[pid_start:pid_end]).item()
@@ -217,7 +221,12 @@ class IndexUpdater:
 
         # Then create new chunks to hold the remaining added passages
         while pid_start < pid_last:
-            pid_end = min(pid_last, pid_start + avg_chunksize)
+            pid_end = int(min(pid_last, pid_start + avg_chunksize))
+            
+            print_message(
+                f"#> pid_start: {pid_start} pid_end: {pid_end} avg_chunksize: {avg_chunksize}"
+            )
+                
             emb_end = (
                 emb_start
                 + torch.sum(self.searcher.ranker.doclens[pid_start:pid_end]).item()
@@ -390,7 +399,7 @@ class IndexUpdater:
         assert sum(new_ivf_lengths) == len(new_ivf)
 
         # Replace the current ivf with new_ivf
-        self.curr_ivf = torch.tensor(new_ivf)
+        self.curr_ivf = torch.tensor(new_ivf, dtype=torch.int32)
         self.curr_ivf_lengths = torch.tensor(new_ivf_lengths)
 
     def _write_to_last_chunk(self, pid_start, pid_end, emb_start, emb_end):
