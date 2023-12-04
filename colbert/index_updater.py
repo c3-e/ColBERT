@@ -63,6 +63,7 @@ class IndexUpdater:
         self.removed_pids = []
         self.first_new_emb = torch.sum(self.searcher.ranker.doclens).item()
         self.first_new_pid = len(self.searcher.ranker.doclens)
+        self.use_gpu = self.config.total_visible_gpus > 0
 
     def remove(self, pids):
         """
@@ -139,7 +140,7 @@ class IndexUpdater:
 
         # Update new ivf in searcher
         new_ivf_tensor = StridedTensor(
-            self.curr_ivf, self.curr_ivf_lengths, use_gpu=False
+            self.curr_ivf, self.curr_ivf_lengths, self.use_gpu
         )
         assert new_ivf_tensor != self.searcher.ranker.ivf
         self.searcher.ranker.ivf = new_ivf_tensor
@@ -284,7 +285,7 @@ class IndexUpdater:
     # HELPER FUNCTIONS BELOW
 
     def _load_disk_ivf(self):
-        print_message(f"#> Loading IVF...")
+        print_message(f"#> Loading IVF using {'GPU' if self.use_gpu else 'CPU'}")
 
         if os.path.exists(os.path.join(self.index_path, "ivf.pid.pt")):
             ivf, ivf_lengths = torch.load(
@@ -378,7 +379,7 @@ class IndexUpdater:
         new_ivf = torch.masked_select(self.curr_ivf, ~mask)
         new_ivf_lengths = self.curr_ivf_lengths - torch.tensor(removed_len)
 
-        new_ivf_tensor = StridedTensor(new_ivf, new_ivf_lengths, use_gpu=False)
+        new_ivf_tensor = StridedTensor(new_ivf, new_ivf_lengths, self.use_gpu)
         assert new_ivf_tensor != self.searcher.ranker.ivf
         self.searcher.ranker.ivf = new_ivf_tensor
 
