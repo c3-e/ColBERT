@@ -4,8 +4,8 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 setuptools.setup(
-    name='colbert',
-    version='0.2.0',
+    name='colbert-ir',
+    version='0.2.14',
     author='Omar Khattab',
     author_email='okhattab@stanford.edu',
     description="Efficient and Effective Passage Search via Contextualized Late Interaction over BERT",
@@ -31,5 +31,5 @@ setuptools.setup(
         'faiss-gpu': ['faiss-gpu>=1.7.0'],
         'torch': ['torch==1.13.1']
     },
-    include_package_data=True
+    include_package_data=True,
 )
